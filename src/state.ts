@@ -52,9 +52,11 @@ function saveState(state: State) {
 
 export function loadState(): State {
   const serializedState = localStorage.getItem('state')
-  if (serializedState) {
+  try {
+    if (!serializedState) throw new Error()
+
     return JSON.parse(atob(serializedState))
-  } else {
+  } catch {
     // State is corrupted, restore to initial
     saveState(initialState)
     return initialState
