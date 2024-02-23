@@ -13,7 +13,7 @@ function App() {
 
   const update = useCallback(() => {
     if (Date.now() - state.lastSave > AUTOSAVE_EVERY_MS) {
-      dispatch({ type: ActionType.SAVE })
+      dispatch({ type: ActionType.SAVE_GAME })
     }
 
     for (const building of state.buildings) {
@@ -101,17 +101,43 @@ function App() {
         {buildings}
       </p>
       <p>
-        <button onClick={() => dispatch({ type: ActionType.SAVE })}>
-          💾 Save progress
-        </button>
-        <button
-          onClick={() =>
-            confirm('Are you sure?') &&
-            dispatch({ type: ActionType.SAVE, reset: true })
-          }
-        >
-          🗑️ Clear Progress
-        </button>
+        <div className="grid-container">
+          <button onClick={() => dispatch({ type: ActionType.SAVE_GAME })}>
+            💾 Save progress
+          </button>
+          <button
+            onClick={() =>
+              confirm('Are you sure?') &&
+              dispatch({ type: ActionType.SAVE_GAME, reset: true })
+            }
+          >
+            🗑️ Clear Progress
+          </button>
+
+          <button
+            onClick={() => {
+              const importData = prompt('Enter your exported save code:')
+              if (!importData) return
+              dispatch({
+                type: ActionType.IMPORT_STATE,
+                serializedState: importData,
+              })
+            }}
+          >
+            ♻️ Import Save
+          </button>
+          <button
+            onClick={() => {
+              dispatch({ type: ActionType.SAVE_GAME })
+              prompt(
+                'Copy the following code to import it:',
+                localStorage.getItem('state') ?? 'Sorry, the save is corrupted'
+              )
+            }}
+          >
+            ⬆️ Export Save
+          </button>
+        </div>
         <div>Last saved at {new Date(state.lastSave).toLocaleString()}</div>
       </p>
     </>

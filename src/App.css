@@ -43,3 +43,12 @@
 .details-title {
   display: inline;
 }
+
+.grid-container {
+  display: grid;
+  grid-template-columns: auto auto;
+}
+
+.grid-container * {
+  margin: 0.1rem;
+}

@@ -12,7 +12,8 @@ export interface State {
 export enum ActionType {
   UPDATE_RESOURCE,
   PURCHASE_BUILDING,
-  SAVE,
+  SAVE_GAME,
+  IMPORT_STATE,
 }
 
 interface UpdateResourceAction {
@@ -26,12 +27,27 @@ interface UpdateBuildingAction {
 }
 
 interface SaveGameAction {
-  type: ActionType.SAVE
+  type: ActionType.SAVE_GAME
   reset?: boolean
 }
 
+interface ReloadStateAction {
+  type: ActionType.IMPORT_STATE
+  serializedState: string
+}
+
+type Action =
+  | SaveGameAction
+  | UpdateResourceAction
+  | UpdateBuildingAction
+  | ReloadStateAction
+
+function saveRawState(serializedState: string) {
+  localStorage.setItem('state', serializedState)
+}
+
 function saveState(state: State) {
-  localStorage.setItem('state', btoa(JSON.stringify(state)))
+  saveRawState(btoa(JSON.stringify(state)))
 }
 
 export function loadState(): State {
@@ -44,8 +60,6 @@ export function loadState(): State {
     return initialState
   }
 }
-
-type Action = SaveGameAction | UpdateResourceAction | UpdateBuildingAction
 
 export function reducer(state: State, action: Action) {
   switch (action.type) {
@@ -71,7 +85,7 @@ export function reducer(state: State, action: Action) {
         building.cost.forEach(c => (c.amount *= building.costMultiplier))
         building.amount++
       })
-    case ActionType.SAVE:
+    case ActionType.SAVE_GAME:
       if (action.reset) {
         saveState(initialState)
         return initialState
@@ -81,6 +95,10 @@ export function reducer(state: State, action: Action) {
           draft.lastSave = Date.now()
         })
       }
+
+    case ActionType.IMPORT_STATE:
+      saveRawState(action.serializedState)
+      return loadState()
 
     default:
       return state
