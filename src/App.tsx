@@ -2,7 +2,7 @@ import { useCallback, useEffect, useReducer } from 'react'
 import './App.css'
 import { matchesCost } from './data'
 import { ActionType, loadState, reducer } from './state'
-import { formatResource, snakeToTitleCase } from './utils'
+import { formatBuilding, formatResource, snakeToTitleCase } from './utils'
 
 const AUTOSAVE_EVERY_MS = 10 * 1000
 
@@ -53,9 +53,7 @@ function App() {
   const buildings = state.buildings.map(building => (
     <details key={building.type}>
       <summary>
-        <h3 className="details-title">
-          {snakeToTitleCase(building.type)} ({building.amount})
-        </h3>
+        <h3 className="details-title">{formatBuilding(building)}</h3>
       </summary>
       <h4>
         <button
@@ -93,17 +91,18 @@ function App() {
 
   return (
     <>
+      <h2>⚙️ Geared</h2>
       <p>
-        <h2>Resources</h2>
+        <h3>Resources</h3>
         {resources}
       </p>
       <p>
-        <h2>Buildings</h2>
+        <h3>Buildings</h3>
         {buildings}
       </p>
       <p>
         <button onClick={() => dispatch({ type: ActionType.SAVE })}>
-          Save progress
+          💾 Save progress
         </button>
         <button
           onClick={() =>
@@ -111,7 +110,7 @@ function App() {
             dispatch({ type: ActionType.SAVE, reset: true })
           }
         >
-          Clear Progress
+          🗑️ Clear Progress
         </button>
         <div>Last saved at {new Date(state.lastSave).toLocaleString()}</div>
       </p>

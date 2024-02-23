@@ -11,6 +11,18 @@ export enum BuildingType {
   LAB = 'laboratory',
 }
 
+export const ResourceIcons = {
+  [ResourceType.IRON]: '🔩',
+  [ResourceType.WOOD]: '🌲',
+  [ResourceType.RESEARCH]: '💡',
+}
+
+export const BuildingIcons = {
+  [BuildingType.WOODCUTTER]: '🪓',
+  [BuildingType.MINER]: '⛏️',
+  [BuildingType.LAB]: '🔬',
+}
+
 export interface Resource {
   type: ResourceType
   amount: number
