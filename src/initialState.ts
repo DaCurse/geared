@@ -21,7 +21,7 @@ const lab: Building = {
   cost: [wood(75), iron(100)],
   costMultiplier: 1.2,
   amount: 0,
-  rps: [research(0)],
+  rps: [research(1)],
 }
 
 export const initialState: State = {
