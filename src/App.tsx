@@ -100,7 +100,11 @@ function App() {
         <h3>Buildings</h3>
         {buildings}
       </p>
-      <p>
+      <details>
+        <summary>
+          <h4 className="details-title">Manage Save</h4>
+        </summary>
+
         <div className="grid-container">
           <button onClick={() => dispatch({ type: ActionType.SAVE_GAME })}>
             💾 Save progress
@@ -138,8 +142,8 @@ function App() {
             ⬆️ Export Save
           </button>
         </div>
-        <div>Last saved at {new Date(state.lastSave).toLocaleString()}</div>
-      </p>
+      </details>
+      <div>Last saved at {new Date(state.lastSave).toLocaleString()}</div>
     </>
   )
 }
