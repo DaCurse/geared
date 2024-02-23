@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useReducer } from 'react'
 import './App.css'
 import { matchesCost } from './data'
-import { ActionType, loadState, reducer } from './state'
+import { ActionType, loadState, reducer, serializeState } from './state'
 import { formatBuilding, formatResource, snakeToTitleCase } from './utils'
 
 const AUTOSAVE_EVERY_MS = 10 * 1000
@@ -132,10 +132,9 @@ function App() {
           </button>
           <button
             onClick={() => {
-              dispatch({ type: ActionType.SAVE_GAME })
               prompt(
                 'Copy the following code to import it:',
-                localStorage.getItem('state') ?? 'Sorry, the save is corrupted'
+                serializeState(state)
               )
             }}
           >

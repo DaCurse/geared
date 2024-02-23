@@ -46,8 +46,12 @@ function saveRawState(serializedState: string) {
   localStorage.setItem('state', serializedState)
 }
 
+export function serializeState(state: State): string {
+  return btoa(JSON.stringify(state))
+}
+
 function saveState(state: State) {
-  saveRawState(btoa(JSON.stringify(state)))
+  saveRawState(serializeState(state))
 }
 
 export function loadState(): State {
