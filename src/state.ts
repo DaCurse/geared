@@ -1,16 +1,18 @@
 import { produce } from 'immer'
-import {
-  ActionType,
-  Building,
-  Resource,
-  matchesCost,
-  subtractResources,
-} from './data'
+import { Building, Resource, matchesCost, subtractResources } from './data'
+import { initialState } from './initialState'
 
 export interface State {
   tps: number
+  lastSave: number
   resources: Resource[]
   buildings: Building[]
+}
+
+export enum ActionType {
+  UPDATE_RESOURCE,
+  PURCHASE_BUILDING,
+  SAVE,
 }
 
 interface UpdateResourceAction {
@@ -23,7 +25,27 @@ interface UpdateBuildingAction {
   buildingType: Building['type']
 }
 
-type Action = UpdateResourceAction | UpdateBuildingAction
+interface SaveGameAction {
+  type: ActionType.SAVE
+  reset?: boolean
+}
+
+function saveState(state: State) {
+  localStorage.setItem('state', btoa(JSON.stringify(state)))
+}
+
+export function loadState(): State {
+  const serializedState = localStorage.getItem('state')
+  if (serializedState) {
+    return JSON.parse(atob(serializedState))
+  } else {
+    // State is corrupted, restore to initial
+    saveState(initialState)
+    return initialState
+  }
+}
+
+type Action = SaveGameAction | UpdateResourceAction | UpdateBuildingAction
 
 export function reducer(state: State, action: Action) {
   switch (action.type) {
@@ -49,6 +71,17 @@ export function reducer(state: State, action: Action) {
         building.cost.forEach(c => (c.amount *= building.costMultiplier))
         building.amount++
       })
+    case ActionType.SAVE:
+      if (action.reset) {
+        saveState(initialState)
+        return initialState
+      } else {
+        saveState(state)
+        return produce(state, draft => {
+          draft.lastSave = Date.now()
+        })
+      }
+
     default:
       return state
   }

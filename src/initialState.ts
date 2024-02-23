@@ -26,6 +26,7 @@ const lab: Building = {
 
 export const initialState: State = {
   tps: 20,
+  lastSave: 0,
   resources: [wood(0), iron(0)],
   buildings: [woodcutter, miner, lab],
 }

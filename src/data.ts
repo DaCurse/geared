@@ -4,19 +4,18 @@ export enum ResourceType {
   IRON = 'iron',
   RESEARCH = 'research_points',
 }
+
 export enum BuildingType {
   MINER = 'iron_miner',
   WOODCUTTER = 'woodcutter',
   LAB = 'laboratory',
 }
-export enum ActionType {
-  UPDATE_RESOURCE,
-  PURCHASE_BUILDING,
-}
+
 export interface Resource {
   type: ResourceType
   amount: number
 }
+
 export interface Building {
   type: BuildingType
   cost: Array<Resource>
