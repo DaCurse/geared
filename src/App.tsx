@@ -1,36 +1,71 @@
-import { useCallback, useEffect, useReducer } from 'react'
+import { useCallback, useEffect, useReducer, useState } from 'react'
 import './App.css'
 import { matchesCost } from './data'
 import { ActionType, loadState, reducer, serializeState } from './state'
 import { formatBuilding, formatResource, snakeToTitleCase } from './utils'
 
+const TPS = 1
+const TICK_INTERVAL = 1000 / TPS
+const MIN_MULTIPLIER = TPS / 1000
 const AUTOSAVE_EVERY_MS = 10 * 1000
 
 const initialState = await loadState()
 
 function App() {
   const [state, dispatch] = useReducer<typeof reducer>(reducer, initialState)
+  const [previousUpdate, setPreviousUpdate] = useState(() => performance.now())
 
-  const update = useCallback(() => {
+  const update = useCallback(
+    (mulitplier: number) => {
+      for (const building of state.buildings) {
+        for (const { type, amount } of building.rps) {
+          dispatch({
+            type: ActionType.UPDATE_RESOURCE,
+            resource: {
+              type,
+              amount: amount * building.amount * mulitplier,
+            },
+          })
+        }
+      }
+    },
+    [state.buildings]
+  )
+
+  // Offline catchup
+  useEffect(() => {
+    const timeSince = Math.min(
+      state.offline.maxCatchupTime,
+      Date.now() - state.lastSave
+    )
+
+    const mulitplier = (timeSince / 1000) * state.offline.multiplier
+    update(mulitplier)
+    dispatch({ type: ActionType.SAVE_GAME })
+
+    console.log('catchup', mulitplier, timeSince)
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const tick = useCallback(() => {
     if (Date.now() - state.lastSave > AUTOSAVE_EVERY_MS) {
       dispatch({ type: ActionType.SAVE_GAME })
     }
 
-    for (const building of state.buildings) {
-      for (const { type, amount } of building.rps) {
-        dispatch({
-          type: ActionType.UPDATE_RESOURCE,
-          resource: { type, amount: (amount * building.amount) / state.tps },
-        })
-      }
-    }
-  }, [state.tps, state.lastSave, state.buildings])
+    // Catchup when tab is not focused
+    const delta = performance.now() - previousUpdate
+    setPreviousUpdate(performance.now())
+    const multiplier = Math.max(MIN_MULTIPLIER, delta / 1000)
+
+    update(multiplier)
+  }, [state.lastSave, previousUpdate, update])
 
   useEffect(() => {
-    const intervalId = setInterval(update, 1000 / state.tps)
+    const intervalId = setInterval(tick, TICK_INTERVAL)
 
     return () => clearInterval(intervalId)
-  }, [state.tps, update])
+  }, [tick])
 
   const resources = state.resources.map(resource => (
     <div key={resource.type} style={{ paddingBottom: '1rem' }}>

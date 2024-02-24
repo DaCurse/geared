@@ -3,8 +3,12 @@ import { Building, Resource, matchesCost, subtractResources } from './data'
 import { initialState } from './initialState'
 
 export interface State {
-  tps: number
+  saveStart: number
   lastSave: number
+  offline: {
+    multiplier: number
+    maxCatchupTime: number
+  }
   resources: Resource[]
   buildings: Building[]
 }
