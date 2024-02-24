@@ -6,7 +6,7 @@ import { formatBuilding, formatResource, snakeToTitleCase } from './utils'
 
 const AUTOSAVE_EVERY_MS = 10 * 1000
 
-const initialState = loadState()
+const initialState = await loadState()
 
 function App() {
   const [state, dispatch] = useReducer<typeof reducer>(reducer, initialState)
@@ -131,10 +131,10 @@ function App() {
             ♻️ Import Save
           </button>
           <button
-            onClick={() => {
+            onClick={async () => {
               prompt(
                 'Copy the following code to import it:',
-                serializeState(state)
+                await serializeState(state)
               )
             }}
           >

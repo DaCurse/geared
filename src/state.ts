@@ -46,20 +46,54 @@ function saveRawState(serializedState: string) {
   localStorage.setItem('state', serializedState)
 }
 
-export function serializeState(state: State): string {
-  return btoa(JSON.stringify(state))
+export async function serializeState(state: State): Promise<string> {
+  const byteArray = new TextEncoder().encode(JSON.stringify(state))
+  const cs = new CompressionStream('gzip')
+  const writer = cs.writable.getWriter()
+  writer.write(byteArray)
+  writer.close()
+
+  const compressedData = await new Response(cs.readable).blob()
+
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => {
+      if (typeof reader.result !== 'string') return reject()
+
+      resolve(reader.result.split(',')[1])
+    }
+    reader.onerror = reject
+    reader.readAsDataURL(compressedData)
+  })
 }
 
-function saveState(state: State) {
-  saveRawState(serializeState(state))
+export async function deserializeState(
+  serializedState: string
+): Promise<State> {
+  const compressedData = Uint8Array.from(atob(serializedState), c =>
+    c.charCodeAt(0)
+  )
+
+  const ds = new DecompressionStream('gzip')
+  const writer = ds.writable.getWriter()
+  writer.write(compressedData)
+  writer.close()
+
+  const decompressedData = await new Response(ds.readable).arrayBuffer()
+  const stateJson = new TextDecoder().decode(decompressedData)
+  return JSON.parse(stateJson)
 }
 
-export function loadState(): State {
+async function saveState(state: State) {
+  saveRawState(await serializeState(state))
+}
+
+export async function loadState(): Promise<State> {
   const serializedState = localStorage.getItem('state')
   try {
     if (!serializedState) throw new Error()
 
-    return JSON.parse(atob(serializedState))
+    return await deserializeState(serializedState)
   } catch {
     // State is corrupted, restore to initial
     saveState(initialState)
@@ -104,7 +138,8 @@ export function reducer(state: State, action: Action) {
 
     case ActionType.IMPORT_STATE:
       saveRawState(action.serializedState)
-      return loadState()
+      location.reload()
+      return state
 
     default:
       return state
