@@ -1,7 +1,14 @@
 import { useCallback, useEffect, useReducer, useState } from 'react'
 import './App.css'
 import { matchesCost } from './data'
-import { ActionType, loadState, reducer, serializeState } from './state'
+import {
+  ActionType,
+  deserializeState,
+  loadState,
+  reducer,
+  saveState,
+  serializeState,
+} from './state'
 import { formatBuilding, formatResource, snakeToTitleCase } from './utils'
 
 const TPS = 20
@@ -58,6 +65,12 @@ function App() {
 
     update(multiplier)
   }, [state.lastSave, previousUpdate, update])
+
+  const saveCurrentState = useCallback(() => saveState(state), [state])
+
+  useEffect(() => {
+    saveCurrentState()
+  }, [state.lastSave, saveCurrentState])
 
   useEffect(() => {
     const intervalId = setInterval(tick, TICK_INTERVAL)
@@ -155,12 +168,14 @@ function App() {
           </button>
 
           <button
-            onClick={() => {
+            onClick={async () => {
               const importData = prompt('Enter your exported save code:')
               if (!importData) return
+
+              const importedState = await deserializeState(importData)
               dispatch({
                 type: ActionType.IMPORT_STATE,
-                serializedState: importData,
+                state: importedState,
               })
             }}
           >

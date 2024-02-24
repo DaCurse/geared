@@ -38,7 +38,7 @@ interface SaveGameAction {
 
 interface ReloadStateAction {
   type: ActionType.IMPORT_STATE
-  serializedState: string
+  state: State
 }
 
 type Action =
@@ -89,7 +89,7 @@ export async function deserializeState(
   return JSON.parse(stateJson)
 }
 
-async function saveState(state: State) {
+export async function saveState(state: State) {
   saveRawState(await serializeState(state))
 }
 
@@ -106,7 +106,7 @@ export async function loadState(): Promise<State> {
   }
 }
 
-export function reducer(state: State, action: Action) {
+export function reducer(state: State, action: Action): State {
   switch (action.type) {
     case ActionType.UPDATE_RESOURCES: {
       // Adjust updates according to multiplier
@@ -132,6 +132,7 @@ export function reducer(state: State, action: Action) {
             r => r.type === resourceUpdate.type
           )
 
+          // Add new resource types
           if (!resource && resourceUpdate.amount > 0) {
             draft.resources.push({
               ...resourceUpdate,
@@ -157,21 +158,16 @@ export function reducer(state: State, action: Action) {
       })
     }
     case ActionType.SAVE_GAME: {
-      if (action.reset) {
-        saveState(initialState)
-        return initialState
-      } else {
-        saveState(state)
-        return produce(state, draft => {
-          draft.lastSave = Date.now()
-        })
-      }
+      return produce(action.reset ? initialState : state, draft => {
+        draft.lastSave = Date.now()
+      })
     }
     case ActionType.IMPORT_STATE: {
-      saveRawState(action.serializedState)
-      location.reload()
-      return state
+      return produce(action.state, draft => {
+        draft.lastSave = Date.now()
+      })
     }
+
     default: {
       return state
     }
