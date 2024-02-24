@@ -4,7 +4,7 @@ import { matchesCost } from './data'
 import { ActionType, loadState, reducer, serializeState } from './state'
 import { formatBuilding, formatResource, snakeToTitleCase } from './utils'
 
-const TPS = 1
+const TPS = 20
 const TICK_INTERVAL = 1000 / TPS
 const MIN_MULTIPLIER = TPS / 1000
 const AUTOSAVE_EVERY_MS = 10 * 1000
@@ -18,15 +18,13 @@ function App() {
   const update = useCallback(
     (mulitplier: number) => {
       for (const building of state.buildings) {
-        for (const { type, amount } of building.rps) {
-          dispatch({
-            type: ActionType.UPDATE_RESOURCE,
-            resource: {
-              type,
-              amount: amount * building.amount * mulitplier,
-            },
-          })
-        }
+        if (building.amount <= 0) continue
+
+        dispatch({
+          type: ActionType.UPDATE_RESOURCES,
+          resources: building.rps,
+          multiplier: building.amount * mulitplier,
+        })
       }
     },
     [state.buildings]
@@ -72,16 +70,19 @@ function App() {
       {formatResource(resource)}
       <br />
 
-      <button
-        onClick={() =>
-          dispatch({
-            type: ActionType.UPDATE_RESOURCE,
-            resource: { type: resource.type, amount: 1 },
-          })
-        }
-      >
-        Gain {snakeToTitleCase(resource.type)}
-      </button>
+      {resource.minable && (
+        <button
+          onClick={() =>
+            dispatch({
+              type: ActionType.UPDATE_RESOURCES,
+              resources: [{ type: resource.type, amount: 1 }],
+              multiplier: 1,
+            })
+          }
+        >
+          Gain {snakeToTitleCase(resource.type)}
+        </button>
+      )}
     </div>
   ))
 

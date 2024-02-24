@@ -14,15 +14,16 @@ export interface State {
 }
 
 export enum ActionType {
-  UPDATE_RESOURCE,
+  UPDATE_RESOURCES,
   PURCHASE_BUILDING,
   SAVE_GAME,
   IMPORT_STATE,
 }
 
 interface UpdateResourceAction {
-  type: ActionType.UPDATE_RESOURCE
-  resource: Resource
+  type: ActionType.UPDATE_RESOURCES
+  resources: Resource[]
+  multiplier: number
 }
 
 interface UpdateBuildingAction {
@@ -107,18 +108,43 @@ export async function loadState(): Promise<State> {
 
 export function reducer(state: State, action: Action) {
   switch (action.type) {
-    case ActionType.UPDATE_RESOURCE:
+    case ActionType.UPDATE_RESOURCES: {
+      // Adjust updates according to multiplier
+      const updates = action.resources.map(r => ({
+        ...r,
+        amount: r.amount * action.multiplier,
+      }))
+
+      // Check that negative resource costs can be deducted
+      const isValidUpdate = updates.every(
+        u =>
+          u.amount > 0 ||
+          state.resources.some(
+            r => r.type === u.type && r.amount + u.amount >= 0
+          )
+      )
+
+      if (!isValidUpdate) return state
+
       return produce(state, draft => {
-        const resource = draft.resources.find(
-          r => r.type === action.resource.type
-        )
-        if (resource) {
-          resource.amount += action.resource.amount
-        } else {
-          draft.resources.push(action.resource)
+        for (const resourceUpdate of updates) {
+          const resource = draft.resources.find(
+            r => r.type === resourceUpdate.type
+          )
+
+          if (!resource && resourceUpdate.amount > 0) {
+            draft.resources.push({
+              ...resourceUpdate,
+              amount: resourceUpdate.amount,
+            })
+            continue
+          } else if (resource) {
+            resource.amount += resourceUpdate.amount
+          }
         }
       })
-    case ActionType.PURCHASE_BUILDING:
+    }
+    case ActionType.PURCHASE_BUILDING: {
       return produce(state, draft => {
         const building = draft.buildings.find(
           b => b.type === action.buildingType
@@ -129,7 +155,8 @@ export function reducer(state: State, action: Action) {
         building.cost.forEach(c => (c.amount *= building.costMultiplier))
         building.amount++
       })
-    case ActionType.SAVE_GAME:
+    }
+    case ActionType.SAVE_GAME: {
       if (action.reset) {
         saveState(initialState)
         return initialState
@@ -139,13 +166,14 @@ export function reducer(state: State, action: Action) {
           draft.lastSave = Date.now()
         })
       }
-
-    case ActionType.IMPORT_STATE:
+    }
+    case ActionType.IMPORT_STATE: {
       saveRawState(action.serializedState)
       location.reload()
       return state
-
-    default:
+    }
+    default: {
       return state
+    }
   }
 }

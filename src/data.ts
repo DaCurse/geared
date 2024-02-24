@@ -1,31 +1,44 @@
 // Types
 export enum ResourceType {
   WOOD = 'wood',
+  STONE = 'stone',
+  COAL = 'coal',
+  IRON_ORE = 'iron_ore',
   IRON = 'iron',
   RESEARCH = 'research_points',
 }
 
 export enum BuildingType {
-  MINER = 'iron_miner',
   WOODCUTTER = 'woodcutter',
+  QUARRY = 'stone_quarry',
+  COAL_MINER = 'coal_miner',
+  IRON_MINER = 'iron_miner',
+  FURNACE = 'stone_furnace',
   LAB = 'laboratory',
 }
 
 export const ResourceIcons = {
-  [ResourceType.IRON]: '🔩',
   [ResourceType.WOOD]: '🌲',
+  [ResourceType.STONE]: '🗿',
+  [ResourceType.COAL]: '🗻',
+  [ResourceType.IRON_ORE]: '⛰️',
+  [ResourceType.IRON]: '🔩',
   [ResourceType.RESEARCH]: '💡',
 }
 
 export const BuildingIcons = {
   [BuildingType.WOODCUTTER]: '🪓',
-  [BuildingType.MINER]: '⛏️',
+  [BuildingType.QUARRY]: '⚒️',
+  [BuildingType.COAL_MINER]: '⛏️',
+  [BuildingType.IRON_MINER]: '⛏️',
+  [BuildingType.FURNACE]: '🔥',
   [BuildingType.LAB]: '🔬',
 }
 
 export interface Resource {
   type: ResourceType
   amount: number
+  minable?: boolean
 }
 
 export interface Building {
@@ -42,6 +55,7 @@ export function matchesCost(resources: Resource[], cost: Resource[]): boolean {
     resources.some(r => r.type === c.type && r.amount >= c.amount)
   )
 }
+
 export function subtractResources(
   resources: Resource[],
   cost: Resource[]
@@ -59,19 +73,32 @@ export function subtractResources(
 // Resource creation utils
 function resource(
   type: Resource['type'],
-  amount: Resource['amount']
+  amount: Resource['amount'],
+  minable: boolean
 ): Resource {
-  return { type, amount }
+  return { type, amount, minable }
 }
 
 export function wood(amount: Resource['amount']) {
-  return resource(ResourceType.WOOD, amount)
+  return resource(ResourceType.WOOD, amount, true)
+}
+
+export function stone(amount: Resource['amount']) {
+  return resource(ResourceType.STONE, amount, true)
+}
+
+export function ironOre(amount: Resource['amount']) {
+  return resource(ResourceType.IRON_ORE, amount, true)
+}
+
+export function coal(amount: Resource['amount']) {
+  return resource(ResourceType.COAL, amount, true)
 }
 
 export function iron(amount: Resource['amount']) {
-  return resource(ResourceType.IRON, amount)
+  return resource(ResourceType.IRON, amount, false)
 }
 
 export function research(amount: Resource['amount']) {
-  return resource(ResourceType.RESEARCH, amount)
+  return resource(ResourceType.RESEARCH, amount, false)
 }
