@@ -48,7 +48,7 @@ function saveRawState(serializedState: string) {
 
 export async function serializeState(state: State): Promise<string> {
   const byteArray = new TextEncoder().encode(JSON.stringify(state))
-  const cs = new CompressionStream('gzip')
+  const cs = new CompressionStream('deflate')
   const writer = cs.writable.getWriter()
   writer.write(byteArray)
   writer.close()
@@ -74,7 +74,7 @@ export async function deserializeState(
     c.charCodeAt(0)
   )
 
-  const ds = new DecompressionStream('gzip')
+  const ds = new DecompressionStream('deflate')
   const writer = ds.writable.getWriter()
   writer.write(compressedData)
   writer.close()
