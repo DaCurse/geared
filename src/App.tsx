@@ -141,14 +141,7 @@ function App() {
   return (
     <>
       <h2>⚙️ Geared</h2>
-      <p>
-        <h3>Resources</h3>
-        {resources}
-      </p>
-      <p>
-        <h3>Buildings</h3>
-        {buildings}
-      </p>
+      <div class="saves">
       <details>
         <summary>
           <h4 className="details-title">Manage Save</h4>
@@ -194,6 +187,17 @@ function App() {
         </div>
       </details>
       <div>Last saved at {new Date(state.lastSave).toLocaleString()}</div>
+    </div>
+    <div class="content-container">
+      <div class="resources">
+        <h3>Resources</h3>
+        {resources}
+      </div>
+      <div class="buildings">
+        <h3>Buildings</h3>
+        {buildings}
+      </div>
+    </div>
     </>
   )
 }
